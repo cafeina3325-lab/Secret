@@ -14,7 +14,7 @@
     "bcryptjs": "^2.4.3",
     "formidable": "^3.5.1",
     "iron-session": "^8.0.1",
-    "lucide-react": "^0.344.0",
+    "lucide-react": "^0.468.0",
     "next": "^15.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
