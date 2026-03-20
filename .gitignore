@@ -5,3 +5,5 @@ node_modules
 *.db-journal
 public/uploads/*
 !public/uploads/.gitkeep
+.vercel
+.env*.local
