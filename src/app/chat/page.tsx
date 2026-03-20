@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronLeft, Image as ImageIcon, Send, Paperclip } from 'lucide-react';
 import { io, Socket } from 'socket.io-client';
@@ -21,7 +21,7 @@ interface User {
   role: string;
 }
 
-export default function ChatPage() {
+function ChatContent() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [me, setMe] = useState<User | null>(null);
@@ -164,5 +164,13 @@ export default function ChatPage() {
         </button>
       </footer>
     </main>
+  );
+}
+
+export default function ChatPage() {
+  return (
+    <Suspense fallback={<div className={styles.loading}>채팅 일시 대기 중...</div>}>
+      <ChatContent />
+    </Suspense>
   );
 }
