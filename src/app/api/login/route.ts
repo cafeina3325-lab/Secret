@@ -25,12 +25,20 @@ export async function POST(req: Request) {
     const cookieStore = await cookies();
     const session = await getIronSession<SessionData>(cookieStore, sessionOptions);
     
+    // 중복 로그인 방지를 위한 새로운 세션 토큰 생성 및 DB 업데이트
+    const sessionToken = crypto.randomUUID();
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { sessionToken }
+    });
+
     session.user = {
       id: user.id,
       username: user.username,
       nickname: user.nickname,
       role: user.role,
       profileImage: user.profileImage || undefined,
+      sessionToken: sessionToken,
     };
     session.isLoggedIn = true;
     await session.save();

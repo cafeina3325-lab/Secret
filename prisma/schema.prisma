@@ -15,6 +15,7 @@ model User {
   nickname     String
   role         String    @default("user") // "admin" or "user"
   profileImage String?
+  sessionToken String?
   createdAt    DateTime  @default(now())
   sentMessages Message[] @relation("SentMessages")
 }
