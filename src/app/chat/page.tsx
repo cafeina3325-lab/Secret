@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ChevronLeft, Image as ImageIcon, Send, Paperclip } from 'lucide-react';
-import { io, Socket } from 'socket.io-client';
+import { ChevronLeft, Image as ImageIcon, Send } from 'lucide-react';
 import styles from './chat.module.css';
 
 interface Message {
@@ -26,62 +25,66 @@ function ChatContent() {
   const [input, setInput] = useState('');
   const [me, setMe] = useState<User | null>(null);
   const [chatId, setChatId] = useState('');
-  const [socket, setSocket] = useState<Socket | null>(null);
   const [loading, setLoading] = useState(true);
-  
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // 1. Load User & Setup ChatId
   useEffect(() => {
-    const init = async () => {
-      const res = await fetch('/api/me');
-      if (!res.ok) return router.push('/login');
-      const data = await res.json();
-      setMe(data.user);
+    const meData = localStorage.getItem('darksecret_me');
+    if (!meData) {
+      router.push('/login');
+      return;
+    }
 
-      let targetUserId = searchParams.get('userId');
-      if (data.user.role === 'admin') {
-        if (!targetUserId) return router.push('/profile');
-        setChatId(`admin_${targetUserId}`);
-      } else {
-        setChatId(`admin_${data.user.id}`);
+    const user = JSON.parse(meData);
+    setMe(user);
+
+    let targetUserId = searchParams.get('userId');
+    if (user.role === 'admin') {
+      if (!targetUserId) {
+        router.push('/profile');
+        return;
       }
-      setLoading(false);
-    };
-    init();
-  }, [searchParams]);
+      setChatId(`admin_${targetUserId}`);
+    } else {
+      setChatId(`admin_${user.id}`);
+    }
+    setLoading(false);
+  }, [searchParams, router]);
 
-  // 2. Setup Socket & Load History
+  // 2. Load History & Simulate Updates
   useEffect(() => {
-    if (!chatId || !me) return;
+    if (!chatId) return;
 
-    const newSocket = io();
-    setSocket(newSocket);
+    const loadMessages = () => {
+      const allMessages = JSON.parse(localStorage.getItem('darksecret_messages') || '[]');
+      const chatMessages = allMessages.filter((m: Message) => m.chatId === chatId);
+      setMessages(chatMessages);
+    };
 
-    newSocket.emit('join', chatId);
+    loadMessages();
 
-    fetch(`/api/messages?chatId=${chatId}`)
-      .then(res => res.json())
-      .then(data => setMessages(data.messages));
-
-    newSocket.on('receiveMessage', (msg: Message) => {
-      setMessages(prev => [...prev, msg]);
-    });
-
-    return () => { newSocket.close(); };
-  }, [chatId, me]);
+    // 로컬 스토리지 변경 감지
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'darksecret_messages') loadMessages();
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [chatId]);
 
   // 3. Auto Scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSend = async (type: 'text' | 'image' = 'text', content: string = input) => {
-    if (!content.trim() || !me || !socket) return;
+  const handleSend = (type: 'text' | 'image' = 'text', content: string = input) => {
+    if (!content.trim() || !me || !chatId) return;
 
-    const msgData = {
+    const newMsg: Message = {
+      id: Date.now(),
       chatId,
       senderId: me.id,
       type,
@@ -89,28 +92,23 @@ function ChatContent() {
       createdAt: new Date().toISOString()
     };
 
-    // DB 저장은 소켓 서버에서 처리하거나 별도 API 호출 (여기서는 단순화를 위해 실시간 전송 후 기록 방식 고려 가능하지만 요구사항은 'Server logic: message saved in database')
-    // 실제로는 API를 통해 저장하고 소켓은 알림용으로 쓰거나, 소켓 서버에서 DB 저장을 수행해야 함.
-    // 커스텀 server.js에서 DB 저장을 수행하도록 로직을 보강하는 것이 좋음.
-    
-    socket.emit('sendMessage', msgData);
-    if(type === 'text') setInput('');
+    const allMessages = JSON.parse(localStorage.getItem('darksecret_messages') || '[]');
+    allMessages.push(newMsg);
+    localStorage.setItem('darksecret_messages', JSON.stringify(allMessages));
+
+    setMessages(prev => [...prev, newMsg]);
+    if (type === 'text') setInput('');
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const res = await fetch('/api/upload', { method: 'POST', body: formData });
-    const data = await res.json();
-    if (data.url) {
-      handleSend('image', data.url);
-    } else {
-      alert(data.error);
-    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      handleSend('image', reader.result as string);
+    };
+    reader.readAsDataURL(file);
   };
 
   if (loading) return <div className={styles.loading}>채팅방 연결 중...</div>;
@@ -122,9 +120,9 @@ function ChatContent() {
           <ChevronLeft /> 뒤로가기
         </button>
         <div className={styles.chatTitle}>
-          {me?.role === 'admin' ? `사용자 대화 (${chatId})` : 'DarkSecret 관리자'}
+          {me?.role === 'admin' ? `사용자 대화 (${chatId})` : 'DarkSecret 상대방'}
         </div>
-        <div style={{width: 80}}></div>
+        <div style={{ width: 80 }}></div>
       </header>
 
       <div className={styles.messageList}>
@@ -151,9 +149,9 @@ function ChatContent() {
           <input type="file" hidden accept="image/*" onChange={handleImageUpload} />
         </label>
         <div className={styles.inputWrapper}>
-          <input 
-            type="text" 
-            placeholder="메시지를 입력하세요..." 
+          <input
+            type="text"
+            placeholder="메시지를 입력하세요..."
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSend()}

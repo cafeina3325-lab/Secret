@@ -18,20 +18,30 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
-      const data = await res.json();
+      // localStorage에서 사용자 목록 가져오기 (없으면 초기 관리자 생성)
+      const storedUsers = JSON.parse(localStorage.getItem('darksecret_users') || '[]');
+      if (storedUsers.length === 0) {
+        const adminUser = { id: 1, username: 'admin', password: 'password123', nickname: '관리자', role: 'admin' };
+        storedUsers.push(adminUser);
+        localStorage.setItem('darksecret_users', JSON.stringify(storedUsers));
+      }
 
-      if (res.ok) {
+      const user = storedUsers.find((u: any) => u.username === username && u.password === password);
+
+      if (user) {
+        localStorage.setItem('darksecret_me', JSON.stringify({
+          id: user.id,
+          username: user.username,
+          nickname: user.nickname,
+          role: user.role,
+          profileImage: user.profileImage
+        }));
         router.push('/profile');
       } else {
-        setError(data.error || '로그인에 실패했습니다.');
+        setError('아이디 또는 비밀번호가 올바르지 않습니다.');
       }
     } catch (err) {
-      setError('서버와 통신 중 오류가 발생했습니다.');
+      setError('로그인 처리 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
@@ -45,14 +55,13 @@ export default function LoginPage() {
         </div>
         <header className={styles.header}>
           <h1>DarkSecret</h1>
-          <p>프리미엄 메신저에 오신 것을 환영합니다.</p>
         </header>
         <form className={styles.form} onSubmit={handleLogin}>
           <div className={styles.inputGroup}>
             <label>아이디</label>
-            <input 
-              type="text" 
-              value={username} 
+            <input
+              type="text"
+              value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="아이디를 입력하세요"
               required
@@ -60,9 +69,9 @@ export default function LoginPage() {
           </div>
           <div className={styles.inputGroup}>
             <label>비밀번호</label>
-            <input 
-              type="password" 
-              value={password} 
+            <input
+              type="password"
+              value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="비밀번호를 입력하세요"
               required

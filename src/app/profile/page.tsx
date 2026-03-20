@@ -26,28 +26,25 @@ export default function ProfilePage() {
     fetchMe();
   }, []);
 
-  const fetchMe = async () => {
-    const res = await fetch('/api/me');
-    if (res.ok) {
-      const data = await res.json();
-      setMe(data.user);
-      if (data.user.role === 'admin') fetchUsers();
+  const fetchMe = () => {
+    const meData = localStorage.getItem('darksecret_me');
+    if (meData) {
+      const user = JSON.parse(meData);
+      setMe(user);
+      if (user.role === 'admin') fetchUsers();
     } else {
       router.push('/login');
     }
     setLoading(false);
   };
 
-  const fetchUsers = async () => {
-    const res = await fetch('/api/user/list');
-    if (res.ok) {
-      const data = await res.json();
-      setUsers(data.users);
-    }
+  const fetchUsers = () => {
+    const storedUsers = JSON.parse(localStorage.getItem('darksecret_users') || '[]');
+    setUsers(storedUsers.filter((u: any) => u.role !== 'admin'));
   };
 
-  const handleLogout = async () => {
-    await fetch('/api/logout', { method: 'POST' });
+  const handleLogout = () => {
+    localStorage.removeItem('darksecret_me');
     router.push('/login');
   };
 
@@ -75,7 +72,7 @@ export default function ProfilePage() {
           </div>
           <h2>{me.nickname}</h2>
           <p className={styles.roleBadge}>{me.role === 'admin' ? '관리자' : '일반 사용자'}</p>
-          
+
           <div className={styles.mainActions}>
             {me.role === 'admin' ? (
               <button onClick={() => setIsCreateOpen(true)} className={styles.primaryBtn}>
@@ -83,7 +80,7 @@ export default function ProfilePage() {
               </button>
             ) : (
               <button onClick={() => router.push('/chat')} className={styles.primaryBtn}>
-                <MessageSquare size={20} /> 관리자와 채팅하기
+                <MessageSquare size={20} /> 채팅하기
               </button>
             )}
           </div>
@@ -104,9 +101,11 @@ export default function ProfilePage() {
                     <button onClick={() => router.push(`/chat?userId=${user.id}`)} className={styles.chatBtn}>
                       <MessageSquare size={18} />
                     </button>
-                    <button className={styles.deleteBtn} onClick={async () => {
-                      if(confirm('정말 삭제하시겠습니까?')) {
-                        await fetch('/api/user/delete', { method: 'DELETE', body: JSON.stringify({ id: user.id }) });
+                    <button className={styles.deleteBtn} onClick={() => {
+                      if (confirm('정말 삭제하시겠습니까?')) {
+                        const storedUsers = JSON.parse(localStorage.getItem('darksecret_users') || '[]');
+                        const updatedUsers = storedUsers.filter((u: any) => u.id !== user.id);
+                        localStorage.setItem('darksecret_users', JSON.stringify(updatedUsers));
                         fetchUsers();
                       }
                     }}>
@@ -134,26 +133,37 @@ function SettingsModal({ user, onClose }: { user: User, onClose: () => void }) {
   const [imgUrl, setImgUrl] = useState(user.profileImage);
   const [loading, setLoading] = useState(false);
 
-  const handleUpdate = async (e: React.FormEvent) => {
+  const handleUpdate = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    await fetch('/api/user/update', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: user.id, username, nickname, password, profileImage: imgUrl }),
-    });
+
+    // Update me
+    const updatedMe = { ...user, username, nickname, profileImage: imgUrl };
+    if (password) {
+      // password update logic if needed
+    }
+    localStorage.setItem('darksecret_me', JSON.stringify(updatedMe));
+
+    // Update in user list
+    const storedUsers = JSON.parse(localStorage.getItem('darksecret_users') || '[]');
+    const updatedUsers = storedUsers.map((u: any) =>
+      u.id === user.id ? { ...u, username, nickname, profileImage: imgUrl, ...(password ? { password } : {}) } : u
+    );
+    localStorage.setItem('darksecret_users', JSON.stringify(updatedUsers));
+
     setLoading(false);
     onClose();
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const formData = new FormData();
-    formData.append('file', file);
-    const res = await fetch('/api/upload', { method: 'POST', body: formData });
-    const data = await res.json();
-    if (data.url) setImgUrl(data.url);
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImgUrl(reader.result as string);
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -167,7 +177,7 @@ function SettingsModal({ user, onClose }: { user: User, onClose: () => void }) {
           <div className={styles.avatarEdit}>
             <img src={imgUrl || `https://i.pravatar.cc/150?u=${user.id}`} alt="Profile" />
             <label htmlFor="img-upload" className={styles.cameraIcon}><Camera size={16} /></label>
-            <input id="img-upload" type="file" style={{display:'none'}} onChange={handleFileChange} />
+            <input id="img-upload" type="file" style={{ display: 'none' }} onChange={handleFileChange} />
           </div>
           <div className={styles.inputGroup}>
             <label>아이디</label>
@@ -194,14 +204,22 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
   const [nickname, setNickname] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    await fetch('/api/user/create', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password, nickname }),
-    });
+
+    const storedUsers = JSON.parse(localStorage.getItem('darksecret_users') || '[]');
+    const newUser = {
+      id: Date.now(),
+      username,
+      password,
+      nickname,
+      role: 'user'
+    };
+
+    storedUsers.push(newUser);
+    localStorage.setItem('darksecret_users', JSON.stringify(storedUsers));
+
     setLoading(false);
     onClose();
   };
