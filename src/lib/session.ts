@@ -1,18 +1,20 @@
 import { SessionOptions } from 'iron-session';
 
 export interface SessionData {
-  user?: {
+  user: {
     id: number;
     username: string;
     nickname: string;
     role: string;
+    profileImage?: string;
   };
+  isLoggedIn: boolean;
 }
 
 export const sessionOptions: SessionOptions = {
-  password: "complex_password_at_least_32_characters_long", // 실제 운영 시 환경변수 권장
-  cookieName: "darksecret_session",
+  password: process.env.SESSION_PASSWORD || 'complex_password_at_least_32_characters_long',
+  cookieName: 'darksecret_session',
   cookieOptions: {
-    secure: process.env.NODE_ENV === "production",
+    secure: process.env.NODE_ENV === 'production',
   },
 };

@@ -26,53 +26,52 @@ function ChatContent() {
   const [me, setMe] = useState<User | null>(null);
   const [chatId, setChatId] = useState('');
   const [loading, setLoading] = useState(true);
-
+  
   const router = useRouter();
   const searchParams = useSearchParams();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // 1. Load User & Setup ChatId
   useEffect(() => {
-    const meData = localStorage.getItem('darksecret_me');
-    if (!meData) {
-      router.push('/login');
-      return;
-    }
+    const init = async () => {
+      try {
+        const res = await fetch('/api/me');
+        if (!res.ok) return router.push('/login');
+        const data = await res.json();
+        setMe(data.user);
 
-    const user = JSON.parse(meData);
-    setMe(user);
-
-    let targetUserId = searchParams.get('userId');
-    if (user.role === 'admin') {
-      if (!targetUserId) {
-        router.push('/profile');
-        return;
+        let targetUserId = searchParams.get('userId');
+        if (data.user.role === 'admin') {
+          if (!targetUserId) return router.push('/profile');
+          setChatId(`admin_${targetUserId}`);
+        } else {
+          setChatId(`admin_${data.user.id}`);
+        }
+        setLoading(false);
+      } catch (err) {
+        router.push('/login');
       }
-      setChatId(`admin_${targetUserId}`);
-    } else {
-      setChatId(`admin_${user.id}`);
-    }
-    setLoading(false);
+    };
+    init();
   }, [searchParams, router]);
 
-  // 2. Load History & Simulate Updates
+  // 2. Load History & Polling for Updates
   useEffect(() => {
     if (!chatId) return;
 
-    const loadMessages = () => {
-      const allMessages = JSON.parse(localStorage.getItem('darksecret_messages') || '[]');
-      const chatMessages = allMessages.filter((m: Message) => m.chatId === chatId);
-      setMessages(chatMessages);
+    const loadMessages = async () => {
+      try {
+        const res = await fetch(`/api/messages?chatId=${chatId}`);
+        const data = await res.json();
+        if (data.messages) setMessages(data.messages);
+      } catch (err) {
+        console.error('메시지 로딩 실패', err);
+      }
     };
 
     loadMessages();
-
-    // 로컬 스토리지 변경 감지
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'darksecret_messages') loadMessages();
-    };
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    const interval = setInterval(loadMessages, 3000); // 3초마다 폴링
+    return () => clearInterval(interval);
   }, [chatId]);
 
   // 3. Auto Scroll
@@ -80,24 +79,24 @@ function ChatContent() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSend = (type: 'text' | 'image' = 'text', content: string = input) => {
+  const handleSend = async (type: 'text' | 'image' = 'text', content: string = input) => {
     if (!content.trim() || !me || !chatId) return;
 
-    const newMsg: Message = {
-      id: Date.now(),
-      chatId,
-      senderId: me.id,
-      type,
-      content,
-      createdAt: new Date().toISOString()
-    };
+    try {
+      const res = await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chatId, type, content }),
+      });
 
-    const allMessages = JSON.parse(localStorage.getItem('darksecret_messages') || '[]');
-    allMessages.push(newMsg);
-    localStorage.setItem('darksecret_messages', JSON.stringify(allMessages));
-
-    setMessages(prev => [...prev, newMsg]);
-    if (type === 'text') setInput('');
+      if (res.ok) {
+        const data = await res.json();
+        setMessages(prev => [...prev, data.message]);
+        if (type === 'text') setInput('');
+      }
+    } catch (err) {
+      alert('메시지 전송에 실패했습니다.');
+    }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -111,6 +110,11 @@ function ChatContent() {
     reader.readAsDataURL(file);
   };
 
+  const handleLogout = async () => {
+    await fetch('/api/logout', { method: 'POST' });
+    router.push('/login');
+  };
+
   if (loading) return <div className={styles.loading}>채팅방 연결 중...</div>;
 
   return (
@@ -122,7 +126,9 @@ function ChatContent() {
         <div className={styles.chatTitle}>
           {me?.role === 'admin' ? `사용자 대화 (${chatId})` : 'DarkSecret 상대방'}
         </div>
-        <div style={{ width: 80 }}></div>
+        <button onClick={handleLogout} className={styles.logoutBtn}>
+          로그아웃
+        </button>
       </header>
 
       <div className={styles.messageList}>

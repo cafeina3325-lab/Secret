@@ -28,6 +28,20 @@
 
 .backBtn:hover { color: var(--text-primary); }
 
+.logoutBtn {
+  font-size: 0.85rem;
+  color: #ef4444;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.1);
+  transition: var(--transition);
+}
+
+.logoutBtn:hover {
+  background: #ef4444;
+  color: white;
+}
+
 .chatTitle {
   font-weight: 700;
   color: var(--text-primary);

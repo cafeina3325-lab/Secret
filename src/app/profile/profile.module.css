@@ -60,40 +60,51 @@
   padding: 48px;
   text-align: center;
   margin-bottom: 60px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
 .avatarLarge {
-  width: 120px;
-  height: 120px;
-  margin: 0 auto 24px;
+  width: 140px;
+  height: 140px;
+  margin: 0 auto 32px;
   position: relative;
 }
 
 .avatarLarge img {
   width: 100%;
   height: 100%;
-  border-radius: 40px;
+  border-radius: 48px;
   object-fit: cover;
   border: 4px solid var(--accent);
+  box-shadow: 0 0 20px rgba(109, 40, 217, 0.4);
+}
+
+.info h2 {
+    font-size: 2rem;
+    font-weight: 800;
 }
 
 .roleBadge {
   display: inline-block;
-  background: rgba(56, 189, 248, 0.1);
-  color: var(--accent);
-  padding: 4px 12px;
+  background: rgba(109, 40, 217, 0.15);
+  color: #a78bfa;
+  padding: 6px 16px;
   border-radius: 20px;
   font-size: 0.85rem;
-  font-weight: 600;
-  margin-top: 8px;
+  font-weight: 700;
+  margin-top: 12px;
+  border: 1px solid rgba(109, 40, 217, 0.3);
 }
 
 .mainActions {
-  margin-top: 32px;
+  margin-top: 40px;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
 }
 
 .primaryBtn {
-  background: var(--accent);
+  background: linear-gradient(to right, var(--accent), #7c3aed);
   color: white;
   padding: 14px 28px;
   border-radius: 16px;
@@ -105,72 +116,89 @@
 }
 
 .primaryBtn:hover {
-  background: var(--accent-hover);
   transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(109, 40, 217, 0.4);
+}
+
+.iconBtn {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  transition: var(--transition);
+}
+
+.iconBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
 }
 
 .userListSection h3 {
-  margin-bottom: 24px;
-  font-size: 1.25rem;
-  color: var(--text-secondary);
+  margin-bottom: 32px;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: white;
 }
 
 .userGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
 }
 
-.userItem {
+.userCard {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 24px;
-  padding: 20px;
+  padding: 24px;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 20px;
   transition: var(--transition);
 }
 
-.userItem:hover {
+.userCard:hover {
   border-color: var(--accent);
-  background: var(--surface-hover);
+  background: rgba(109, 40, 217, 0.05);
+  transform: scale(1.02);
 }
 
-.userItem img {
-  width: 50px;
-  height: 50px;
-  border-radius: 16px;
+.userCard img {
+  width: 60px;
+  height: 60px;
+  border-radius: 20px;
   object-fit: cover;
+  border: 2px solid var(--border);
 }
 
-.userInfo {
+.userCardInfo {
   flex: 1;
-  display: flex;
-  flex-direction: column;
 }
 
 .userNickname {
-  font-weight: 700;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: white;
 }
 
 .username {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: var(--text-muted);
 }
 
-.itemActions {
+.userActions {
   display: flex;
-  gap: 8px;
+  gap: 10px;
 }
 
 .chatBtn, .deleteBtn {
-  padding: 8px;
-  border-radius: 10px;
+  padding: 10px;
+  border-radius: 12px;
   transition: var(--transition);
 }
 
-.chatBtn { color: var(--accent); background: rgba(56, 189, 248, 0.1); }
+.chatBtn { color: var(--accent); background: rgba(109, 40, 217, 0.1); }
 .chatBtn:hover { background: var(--accent); color: white; }
 
 .deleteBtn { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
@@ -179,46 +207,46 @@
 /* Modal Styles */
 .modalOverlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 100;
+  animation: fadeIn 0.3s ease;
 }
 
-.modalCard {
-  background: #1e293b;
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.modal {
+  background: #0f172a;
   border: 1px solid var(--border);
-  border-radius: 24px;
+  border-radius: 32px;
   width: 90%;
-  max-width: 450px;
-  padding: 32px;
+  max-width: 440px;
+  padding: 40px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
 .modalHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 32px;
 }
 
-.modalHeader h3 { font-size: 1.5rem; }
-.modalHeader button { color: var(--text-muted); }
+.modalHeader h3 { font-size: 1.5rem; font-weight: 800; }
 
-.modalForm {
+.form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
 .avatarEdit {
-  width: 100px;
-  height: 100px;
+  width: 110px;
+  height: 110px;
   margin: 0 auto;
   position: relative;
 }
@@ -226,23 +254,25 @@
 .avatarEdit img {
   width: 100%;
   height: 100%;
-  border-radius: 30px;
+  border-radius: 36px;
   object-fit: cover;
+  border: 3px solid var(--accent);
 }
 
 .cameraIcon {
   position: absolute;
-  bottom: -5px;
-  right: -5px;
+  bottom: -4px;
+  right: -4px;
   background: var(--accent);
   color: white;
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
 .inputGroup label {
@@ -254,21 +284,46 @@
 
 .inputGroup input {
   width: 100%;
-  background: rgba(15, 23, 42, 0.8);
+  background: rgba(15, 23, 42, 0.6);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 12px 16px;
+  border-radius: 14px;
+  padding: 14px 18px;
   color: white;
   outline: none;
 }
 
-.submitBtn {
-  background: var(--accent);
-  color: white;
-  padding: 16px;
-  border-radius: 12px;
+.inputGroup input:focus { border-color: var(--accent); }
+
+.modalActions {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.cancelBtn {
+    flex: 1;
+    padding: 14px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.05);
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.logoutBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-radius: 14px;
   font-weight: 700;
-  margin-top: 8px;
+  transition: var(--transition);
+}
+
+.logoutBtn:hover {
+  background: #ef4444;
+  color: white;
 }
 
 .loading { color: white; display:flex; justify-content: center; align-items: center; height:100vh; }

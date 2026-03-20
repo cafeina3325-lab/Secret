@@ -3,94 +3,108 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #000000;
+  background: radial-gradient(circle at center, #1e1b4b, #000000);
+  overflow: hidden;
 }
 
-.card {
+.loginBox {
   background: var(--surface);
   backdrop-filter: var(--glass-blur);
   padding: 48px;
   border-radius: 32px;
   border: 1px solid var(--border);
-  width: 100%;
-  max-width: 450px;
+  width: 90%;
+  max-width: 420px;
   text-align: center;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8),
+              0 0 30px rgba(109, 40, 217, 0.15);
+  animation: fadeInDown 0.6s ease-out;
 }
 
-.logo {
-  color: var(--accent);
-  margin-bottom: 24px;
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.logoIcon {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, var(--accent), #a855f7);
+  color: white;
+  border-radius: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5rem;
+  font-weight: 900;
+  margin: 0 auto 24px;
+  box-shadow: 0 10px 20px rgba(109, 40, 217, 0.3);
 }
 
 .header h1 {
-  font-size: 2.5rem;
-  margin-bottom: 12px;
-  letter-spacing: -1px;
-}
-
-.header p {
-  color: var(--text-secondary);
-  margin-bottom: 40px;
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 32px;
+  background: linear-gradient(to bottom, #fff, #94a3b8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
   text-align: left;
 }
 
 .inputGroup label {
   display: block;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--text-secondary);
-  margin-bottom: 10px;
-  margin-left: 4px;
+  margin-bottom: 8px;
 }
 
 .inputGroup input {
   width: 100%;
-  background: rgba(15, 23, 42, 0.5);
+  background: rgba(15, 23, 42, 0.6);
   border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 16px 20px;
-  color: var(--text-primary);
-  font-size: 1rem;
+  border-radius: 14px;
+  padding: 14px 18px;
+  color: white;
   outline: none;
   transition: var(--transition);
 }
 
 .inputGroup input:focus {
   border-color: var(--accent);
-  background: rgba(15, 23, 42, 0.8);
+  background: rgba(15, 23, 42, 0.9);
   box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.1);
 }
 
-.submitBtn {
-  background-color: var(--accent);
+.loginBtn {
+  background: linear-gradient(to right, var(--accent), #7c3aed);
   color: white;
-  padding: 18px;
-  border-radius: 16px;
-  font-size: 1.1rem;
+  padding: 16px;
+  border-radius: 14px;
   font-weight: 700;
+  font-size: 1rem;
   margin-top: 10px;
   transition: var(--transition);
 }
 
-.submitBtn:hover:not(:disabled) {
-  background-color: var(--accent-hover);
+.loginBtn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px -5px rgba(168, 85, 247, 0.4);
+  box-shadow: 0 10px 20px rgba(109, 40, 217, 0.4);
 }
 
-.submitBtn:disabled {
-  opacity: 0.6;
+.loginBtn:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-.errorMessage {
+.error {
   color: #ef4444;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  margin-top: 4px;
   text-align: center;
 }
