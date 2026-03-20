@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { ChevronLeft, Send, Image as ImageIcon, Camera, Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { ChevronLeft, Send, Image as ImageIcon, CheckCircle } from 'lucide-react';
 import styles from './chat.module.css';
 
 interface Message {
@@ -21,7 +21,8 @@ interface User {
   role: string;
 }
 
-export default function ChatPage() {
+// 실제 채팅 로직이 담긴 컴포넌트
+function ChatContent() {
   const searchParams = useSearchParams();
   const userId = searchParams.get('userId');
   const router = useRouter();
@@ -212,5 +213,14 @@ export default function ChatPage() {
         </button>
       </form>
     </main>
+  );
+}
+
+// 메인 페이지 컴포넌트 (Suspense 래핑)
+export default function ChatPage() {
+  return (
+    <Suspense fallback={<div className={styles.loading}>로딩 중...</div>}>
+      <ChatContent />
+    </Suspense>
   );
 }
