@@ -156,6 +156,15 @@
   align-items: center;
   gap: 20px;
   transition: var(--transition);
+  overflow: hidden;
+}
+
+.userCardContent {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  cursor: pointer;
 }
 
 .userCard:hover {
@@ -327,3 +336,53 @@
 }
 
 .loading { color: white; display:flex; justify-content: center; align-items: center; height:100vh; }
+
+/* User Detail Modal Specific Styles */
+.userDetailContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+}
+
+.avatarHuge {
+  width: 200px;
+  height: 200px;
+  position: relative;
+}
+
+.avatarHuge img {
+  width: 100%;
+  height: 100%;
+  border-radius: 48px;
+  object-fit: cover;
+  border: 4px solid var(--accent);
+  box-shadow: 0 20px 40px rgba(109, 40, 217, 0.3);
+}
+
+.detailList {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.detailItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.label {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.value {
+  font-size: 1rem;
+  color: white;
+  font-weight: 700;
+}

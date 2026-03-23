@@ -20,6 +20,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   
   const router = useRouter();
 
@@ -104,10 +105,12 @@ export default function ProfilePage() {
           <div className={styles.userGrid}>
             {users.map(user => (
               <div key={user.id} className={styles.userCard}>
-                <img src={user.profileImage || `https://i.pravatar.cc/80?u=${user.id}`} alt={user.nickname} />
-                <div className={styles.userCardInfo}>
-                  <p className={styles.userNickname}>{user.nickname}</p>
-                  <p className={styles.username}>@{user.username}</p>
+                <div className={styles.userCardContent} onClick={() => setSelectedUser(user)}>
+                  <img src={user.profileImage || `https://i.pravatar.cc/80?u=${user.id}`} alt={user.nickname} />
+                  <div className={styles.userCardInfo}>
+                    <p className={styles.userNickname}>{user.nickname}</p>
+                    <p className={styles.username}>@{user.username}</p>
+                  </div>
                 </div>
                 <div className={styles.userActions}>
                   <button className={styles.chatBtn} onClick={() => router.push(`/chat?userId=${user.id}`)}>
@@ -128,7 +131,50 @@ export default function ProfilePage() {
         setUsers([newUser, ...users]);
         setIsCreateOpen(false);
       }} onClose={() => setIsCreateOpen(false)} />}
+      
+      {selectedUser && <UserDetailModal user={selectedUser} onClose={() => setSelectedUser(null)} />}
     </main>
+  );
+}
+
+function UserDetailModal({ user, onClose }: { user: User, onClose: () => void }) {
+  return (
+    <div className={styles.modalOverlay} onClick={onClose}>
+      <div className={styles.modal} onClick={e => e.stopPropagation()}>
+        <div className={styles.modalHeader}>
+          <h3>유저 상세 정보</h3>
+          <button onClick={onClose}><X /></button>
+        </div>
+        <div className={styles.userDetailContent}>
+          <div className={styles.avatarHuge}>
+            <img src={user.profileImage || `https://i.pravatar.cc/300?u=${user.id}`} alt="Large Profile" />
+          </div>
+          <div className={styles.detailList}>
+            <div className={styles.detailItem}>
+              <span className={styles.label}>아이디</span>
+              <span className={styles.value}>{user.username}</span>
+            </div>
+            <div className={styles.detailItem}>
+              <span className={styles.label}>닉네임</span>
+              <span className={styles.value}>{user.nickname}</span>
+            </div>
+            <div className={styles.detailItem}>
+              <span className={styles.label}>역할</span>
+              <span className={styles.value}>{user.role === 'admin' ? '관리자' : '일반 사용자'}</span>
+            </div>
+            <div className={styles.detailItem}>
+              <span className={styles.label}>가입일</span>
+              <span className={styles.value}>
+                {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '정보 없음'}
+              </span>
+            </div>
+          </div>
+          <div className={styles.modalActions}>
+            <button onClick={onClose} className={styles.primaryBtn} style={{ width: '100%' }}>닫기</button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
