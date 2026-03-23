@@ -2,8 +2,44 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, Settings, UserPlus, MessageSquare, Camera, X } from 'lucide-react';
+import { User, MessageSquare, X, Camera, UserPlus, Settings, LogOut } from 'lucide-react';
 import styles from './profile.module.css';
+
+// 이미지 리사이징 헬퍼 함수
+const resizeImage = (file: File, maxWidth: number = 1000): Promise<string> => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height *= maxWidth / width;
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxWidth) {
+            width *= maxWidth / height;
+            height = maxWidth;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        // 품질을 0.8로 설정하여 용량을 대폭 줄임
+        resolve(canvas.toDataURL('image/jpeg', 0.8));
+      };
+    };
+  });
+};
 
 interface User {
   id: number;
@@ -208,18 +244,30 @@ function SettingsModal({ user, onUpdated, onClose }: { user: User, onUpdated: ()
         onUpdated();
         onClose();
     } else {
-        const data = await res.json();
-        alert(data.error);
+        // 413 Content Too Large 등 JSON이 아닌 에러 대응
+        const contentType = res.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            const data = await res.json();
+            alert(data.error);
+        } else {
+            const text = await res.text();
+            if (res.status === 413) {
+                alert('이미지 용량이 너무 큽니다. 더 작은 이미지를 선택해주세요. (Vercel 제한)');
+            } else {
+                alert('업데이트 중 오류가 발생했습니다.');
+            }
+        }
     }
     setLoading(false);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => setImgUrl(reader.result as string);
-    reader.readAsDataURL(file);
+    
+    // 리사이징을 통해 용량 4.5MB(Vercel 제한) 이하로 최적화
+    const resizedDataUrl = await resizeImage(file);
+    setImgUrl(resizedDataUrl);
   };
 
   return (
