@@ -21,6 +21,7 @@ export default function ProfilePage() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [zoomedImg, setZoomedImg] = useState<string | null>(null);
   
   const router = useRouter();
 
@@ -132,12 +133,20 @@ export default function ProfilePage() {
         setIsCreateOpen(false);
       }} onClose={() => setIsCreateOpen(false)} />}
       
-      {selectedUser && <UserDetailModal user={selectedUser} onClose={() => setSelectedUser(null)} />}
+      {selectedUser && <UserDetailModal user={selectedUser} onImageClick={(url) => setZoomedImg(url)} onClose={() => setSelectedUser(null)} />}
+      
+      {zoomedImg && (
+        <div className={styles.zoomedOverlay} onClick={() => setZoomedImg(null)}>
+          <img src={zoomedImg} alt="Zoomed" />
+        </div>
+      )}
     </main>
   );
 }
 
-function UserDetailModal({ user, onClose }: { user: User, onClose: () => void }) {
+function UserDetailModal({ user, onImageClick, onClose }: { user: User, onImageClick: (url: string) => void, onClose: () => void }) {
+  const profileImg = user.profileImage || `https://i.pravatar.cc/300?u=${user.id}`;
+  
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modal} onClick={e => e.stopPropagation()}>
@@ -146,8 +155,8 @@ function UserDetailModal({ user, onClose }: { user: User, onClose: () => void })
           <button onClick={onClose}><X /></button>
         </div>
         <div className={styles.userDetailContent}>
-          <div className={styles.avatarHuge}>
-            <img src={user.profileImage || `https://i.pravatar.cc/300?u=${user.id}`} alt="Large Profile" />
+          <div className={styles.avatarHuge} onClick={() => onImageClick(profileImg)} style={{ cursor: 'zoom-in' }}>
+            <img src={profileImg} alt="Large Profile" />
           </div>
           <div className={styles.detailList}>
             <div className={styles.detailItem}>

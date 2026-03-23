@@ -386,3 +386,25 @@
   color: white;
   font-weight: 700;
 }
+
+/* Zoomed Image Overlay (Lightbox) */
+.zoomedOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 200;
+  padding: 40px;
+  cursor: zoom-out;
+  animation: fadeIn 0.3s ease;
+}
+
+.zoomedOverlay img {
+  max-width: 95%;
+  max-height: 95%;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 0 40px rgba(0,0,0,0.5);
+}
