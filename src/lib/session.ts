@@ -6,7 +6,6 @@ export interface SessionData {
     username: string;
     nickname: string;
     role: string;
-    profileImage?: string;
     sessionToken: string;
   };
   isLoggedIn: boolean;

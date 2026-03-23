@@ -11,7 +11,13 @@ export async function GET() {
     return NextResponse.json({ error: '로그인이 필요합니다.' }, { status: 401 });
   }
 
-  return NextResponse.json({ user: session.user });
+  // 세션 정보 대신 DB에서 최신 정보를 조회하여 반환 (사진 포함)
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { id: true, username: true, nickname: true, role: true, profileImage: true }
+  });
+
+  return NextResponse.json({ user });
 }
 
 // PATCH /api/me - 프로필 정보 수정
@@ -42,10 +48,9 @@ export async function PATCH(req: Request) {
       data: updateData,
     });
 
-    // 세션 정보도 업데이트
+    // 세션 정보 업데이트 (사진 등 대용량 데이터는 제외)
     session.user.username = updatedUser.username;
     session.user.nickname = updatedUser.nickname;
-    if (updatedUser.profileImage) session.user.profileImage = updatedUser.profileImage;
     await session.save();
 
     return NextResponse.json({ success: true, user: session.user });

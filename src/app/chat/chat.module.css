@@ -123,15 +123,7 @@
   gap: 12px;
 }
 
-.iconBtn {
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: var(--transition);
-  display: flex;
-  align-items: center;
-}
 
-.iconBtn:hover { color: var(--accent); }
 
 .inputWrapper {
   flex: 1;

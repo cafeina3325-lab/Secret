@@ -37,7 +37,6 @@ export async function POST(req: Request) {
       username: user.username,
       nickname: user.nickname,
       role: user.role,
-      profileImage: user.profileImage || undefined,
       sessionToken: sessionToken,
     };
     session.isLoggedIn = true;

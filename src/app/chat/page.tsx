@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { ChevronLeft, Send, Image as ImageIcon, CheckCircle } from 'lucide-react';
+import { ChevronLeft, Send, CheckCircle } from 'lucide-react';
 import styles from './chat.module.css';
 
 interface Message {
@@ -200,9 +200,7 @@ function ChatContent() {
       </div>
 
       <form onSubmit={handleSend} className={styles.inputArea}>
-        <div className={styles.iconBtn}>
-          <ImageIcon size={24} />
-        </div>
+
         <div className={styles.inputWrapper}>
           <input 
             value={inputText} 
