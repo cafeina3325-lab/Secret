@@ -38,8 +38,9 @@ function ChatContent() {
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const chatId = me && userId ? 
-    (me.role === 'admin' ? `admin_${userId}` : `admin_${me.id}`) : '';
+  // chatId 생성 로직: 관리자는 대상 userId가 필요하지만, 일반 사용자는 본인 ID 기반으로 자동 생성
+  const chatId = me ? 
+    (me.role === 'admin' ? (userId ? `admin_${userId}` : '') : `admin_${me.id}`) : '';
 
   useEffect(() => {
     const checkUser = async () => {
@@ -62,6 +63,7 @@ function ChatContent() {
     } catch (err) {
       console.error(err);
     } finally {
+      // chatId가 없더라도 로딩 상태는 해제하여 화면이 멈추지 않게 함
       setLoading(false);
     }
   };
