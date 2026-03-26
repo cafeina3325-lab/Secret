@@ -169,7 +169,12 @@ export default function ProfilePage() {
         setIsCreateOpen(false);
       }} onClose={() => setIsCreateOpen(false)} />}
       
-      {selectedUser && <UserDetailModal user={selectedUser} onImageClick={(url) => setZoomedImg(url)} onClose={() => setSelectedUser(null)} />}
+      {selectedUser && <UserDetailModal 
+        user={selectedUser} 
+        onImageClick={(url) => setZoomedImg(url)} 
+        onUpdated={fetchData} 
+        onClose={() => setSelectedUser(null)} 
+      />}
       
       {zoomedImg && (
         <div className={styles.zoomedOverlay} onClick={() => setZoomedImg(null)}>
@@ -180,42 +185,132 @@ export default function ProfilePage() {
   );
 }
 
-function UserDetailModal({ user, onImageClick, onClose }: { user: User, onImageClick: (url: string) => void, onClose: () => void }) {
+function UserDetailModal({ user, onImageClick, onUpdated, onClose }: { user: User, onImageClick: (url: string) => void, onUpdated: () => void, onClose: () => void }) {
   const profileImg = user.profileImage || `https://i.pravatar.cc/300?u=${user.id}`;
+  const [isEditing, setIsEditing] = useState(false);
+  const [username, setUsername] = useState(user.username);
+  const [nickname, setNickname] = useState(user.nickname);
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleUpdate = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/users', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          userId: user.id, 
+          username, 
+          nickname, 
+          password: password || undefined 
+        }),
+      });
+
+      if (res.ok) {
+        alert('유저 정보가 수정되었습니다.');
+        onUpdated();
+        setIsEditing(false); // 다시 상세 보기로 돌아감
+      } else {
+        const data = await res.json();
+        alert(data.error || '수정 중 오류가 발생했습니다.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('서버 통신 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
   
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modal} onClick={e => e.stopPropagation()}>
         <div className={styles.modalHeader}>
-          <h3>유저 상세 정보</h3>
+          <h3>{isEditing ? '유저 계정 수정' : '유저 상세 정보'}</h3>
           <button onClick={onClose}><X /></button>
         </div>
         <div className={styles.userDetailContent}>
           <div className={styles.avatarHuge} onClick={() => onImageClick(profileImg)} style={{ cursor: 'zoom-in' }}>
             <img src={profileImg} alt="Large Profile" />
           </div>
+          
           <div className={styles.detailList}>
-            <div className={styles.detailItem}>
-              <span className={styles.label}>아이디</span>
-              <span className={styles.value}>{user.username}</span>
-            </div>
-            <div className={styles.detailItem}>
-              <span className={styles.label}>닉네임</span>
-              <span className={styles.value}>{user.nickname}</span>
-            </div>
-            <div className={styles.detailItem}>
-              <span className={styles.label}>역할</span>
-              <span className={styles.value}>{user.role === 'admin' ? '관리자' : '일반 사용자'}</span>
-            </div>
-            <div className={styles.detailItem}>
-              <span className={styles.label}>가입일</span>
-              <span className={styles.value}>
-                {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '정보 없음'}
-              </span>
-            </div>
+            {isEditing ? (
+              <>
+                <div className={styles.inputGroup}>
+                  <label>아이디</label>
+                  <input value={username} onChange={e => setUsername(e.target.value)} />
+                </div>
+                <div className={styles.inputGroup}>
+                  <label>닉네임</label>
+                  <input value={nickname} onChange={e => setNickname(e.target.value)} />
+                </div>
+                <div className={styles.inputGroup}>
+                  <label>비밀번호 (변경 시에만 입력)</label>
+                  <input 
+                    type="password" 
+                    value={password} 
+                    onChange={e => setPassword(e.target.value)} 
+                    placeholder="새 비밀번호 입력"
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className={styles.detailItem}>
+                  <span className={styles.label}>아이디</span>
+                  <span className={styles.value}>{user.username}</span>
+                </div>
+                <div className={styles.detailItem}>
+                  <span className={styles.label}>닉네임</span>
+                  <span className={styles.value}>{user.nickname}</span>
+                </div>
+                <div className={styles.detailItem}>
+                  <span className={styles.label}>역할</span>
+                  <span className={styles.value}>{user.role === 'admin' ? '관리자' : '일반 사용자'}</span>
+                </div>
+                <div className={styles.detailItem}>
+                  <span className={styles.label}>가입일</span>
+                  <span className={styles.value}>
+                    {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '정보 없음'}
+                  </span>
+                </div>
+              </>
+            )}
           </div>
+
           <div className={styles.modalActions}>
-            <button onClick={onClose} className={styles.primaryBtn} style={{ width: '100%' }}>닫기</button>
+            {isEditing ? (
+              <>
+                <button onClick={() => setIsEditing(false)} className={styles.cancelBtn}>취소</button>
+                <button 
+                  onClick={handleUpdate} 
+                  className={styles.primaryBtn} 
+                  disabled={loading}
+                  style={{ flex: 1, justifyContent: 'center', whiteSpace: 'nowrap' }}
+                >
+                  {loading ? '저장 중...' : '저장하기'}
+                </button>
+              </>
+            ) : (
+              <>
+                <button 
+                  onClick={() => setIsEditing(true)} 
+                  className={styles.cancelBtn} 
+                  style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}
+                >
+                  <Settings size={18} /> 계정 관리
+                </button>
+                <button 
+                  onClick={onClose} 
+                  className={styles.primaryBtn} 
+                  style={{ flex: 1, justifyContent: 'center', whiteSpace: 'nowrap' }}
+                >
+                  닫기
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
