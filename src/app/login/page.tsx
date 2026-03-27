@@ -52,7 +52,7 @@ export default function LoginPage() {
               className={styles.loginBtn}
               onClick={() => setShowLoginForm(true)}
             >
-              Connet
+              Connect
             </button>
           </div>
         ) : (
