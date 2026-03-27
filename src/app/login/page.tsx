@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import styles from './login.module.css';
 
 export default function LoginPage() {
+  const [showLoginForm, setShowLoginForm] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -42,38 +43,46 @@ export default function LoginPage() {
   return (
     <main className={styles.container}>
       <div className={styles.loginBox}>
-        <div className={styles.logo}>
-          <div className={styles.logoIcon}>DS</div>
-        </div>
         <header className={styles.header}>
-          <h1>DarkSecret</h1>
+          <h1 data-text="DARK SECRET">DARK SECRET</h1>
         </header>
-        <form className={styles.form} onSubmit={handleLogin}>
-          <div className={styles.inputGroup}>
-            <label>아이디</label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="아이디를 입력하세요"
-              required
-            />
+        {!showLoginForm ? (
+          <div className={styles.initialAction}>
+            <button
+              className={styles.loginBtn}
+              onClick={() => setShowLoginForm(true)}
+            >
+              Connet
+            </button>
           </div>
-          <div className={styles.inputGroup}>
-            <label>비밀번호</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="비밀번호를 입력하세요"
-              required
-            />
-          </div>
-          {error && <p className={styles.error}>{error}</p>}
-          <button type="submit" className={styles.loginBtn} disabled={loading}>
-            {loading ? '로그인 중...' : '로그인'}
-          </button>
-        </form>
+        ) : (
+          <form className={styles.form} onSubmit={handleLogin}>
+            <div className={styles.inputGroup}>
+              <label>아이디</label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="아이디를 입력하세요"
+                required
+              />
+            </div>
+            <div className={styles.inputGroup}>
+              <label>비밀번호</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="비밀번호를 입력하세요"
+                required
+              />
+            </div>
+            {error && <p className={styles.error}>{error}</p>}
+            <button type="submit" className={styles.loginBtn} disabled={loading}>
+              {loading ? 'Entering...' : 'Log-in'}
+            </button>
+          </form>
+        )}
       </div>
     </main>
   );
